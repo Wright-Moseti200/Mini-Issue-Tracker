@@ -20,7 +20,7 @@ let {
 
 userRoute.post("/register", registerValidation, Register);
 userRoute.post("/login", loginValidation, Login);
-userRoute.post("/logout", auth, Logout);
+userRoute.post("/logout",Logout);
 userRoute.get("/me", auth, me);
 userRoute.get("/issues", auth, viewissues);
 userRoute.post("/issues", auth, createIssueValidation, createissues);
