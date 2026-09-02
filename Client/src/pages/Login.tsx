@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useContextData } from '../context/ContextProvider';
 
 const Login: React.FC = () => {
@@ -11,7 +12,6 @@ const Login: React.FC = () => {
     password: '',
   });
 
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,10 +20,9 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!formData.email || !formData.password) {
-      setError('Please enter both email and password.');
+      toast.error('Please enter both email and password.');
       return;
     }
 
@@ -31,12 +30,13 @@ const Login: React.FC = () => {
     try {
       const data = await login(formData);
       if (data.success) {
+        toast.success('Logged in successfully!');
         navigate('/');
       } else {
-        setError(data.message || 'Invalid email or password.');
+        toast.error(data.message || 'Invalid email or password.');
       }
     } catch {
-      setError('An error occurred during sign in.');
+      toast.error('An error occurred during sign in.');
     } finally {
       setLoading(false);
     }
@@ -51,8 +51,6 @@ const Login: React.FC = () => {
         <p style={{ color: '#a3a3a3', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
           Sign in to your Mini Issue Tracker
         </p>
-
-        {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

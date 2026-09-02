@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useContextData } from '../context/ContextProvider';
 
 const Dashboard: React.FC = () => {
@@ -21,13 +22,19 @@ const Dashboard: React.FC = () => {
 
   const handleLogout = async () => {
     await logout();
+    toast.info('Logged out.');
     navigate('/login');
   };
 
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this issue?')) {
-      await deleteIssue(id);
+      const res = await deleteIssue(id);
+      if (res?.success) {
+        toast.success('Issue deleted successfully.');
+      } else {
+        toast.error(res?.message || 'Failed to delete issue.');
+      }
     }
   };
 

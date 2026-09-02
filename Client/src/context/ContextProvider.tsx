@@ -1,22 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 export const Contextdata = createContext<any>(null);
 
 export const useContextData = () => useContext(Contextdata);
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [issues, setIssues] = useState<any[]>([]);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
   // 1. Register (POST /api/register)
   const register = async (payload: any) => {
     const res = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     });
     return res.json();
@@ -24,21 +26,29 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
 
   // 2. Login (POST /api/login)
   const login = async (payload: any) => {
+    setIssues([]);
     const res = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (data.success) fetchCurrentUser();
+    if (data.success) {
+      await fetchCurrentUser();
+    }
     return data;
   };
 
   // 3. Logout (POST /api/logout)
   const logout = async () => {
-    const res = await fetch(`${API_BASE_URL}/logout`, { method: 'POST' });
+    const res = await fetch(`${API_BASE_URL}/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     const data = await res.json();
-    if (data.success) setUser(null);
+    setUser(null);
+    setIssues([]);
     return data;
   };
 
@@ -47,20 +57,40 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/me`, { credentials: 'include' });
       const data = await res.json();
-      if (data.success) setUser(data.user);
-      else setUser(null);
+      if (data.success) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+        setIssues([]);
+      }
       return data;
     } catch {
       setUser(null);
+      setIssues([]);
+    } finally {
+      setCheckingAuth(false);
     }
   };
 
+  // Run initial session check once when provider mounts
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
   // 5. Get Issues (GET /api/issues)
   const fetchIssues = async () => {
-    const res = await fetch(`${API_BASE_URL}/issues`, { credentials: 'include' });
-    const data = await res.json();
-    if (data.success) setIssues(data.userdata);
-    return data;
+    try {
+      const res = await fetch(`${API_BASE_URL}/issues`, { credentials: 'include' });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.userdata)) {
+        setIssues(data.userdata);
+      } else {
+        setIssues([]);
+      }
+      return data;
+    } catch {
+      setIssues([]);
+    }
   };
 
   // 6. Get Issue Details (GET /api/issues/:id)
@@ -111,6 +141,7 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         issues,
+        checkingAuth,
         register,
         login,
         logout,

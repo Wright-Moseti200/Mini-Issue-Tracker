@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useContextData } from '../context/ContextProvider';
 
 const IssueDetails: React.FC = () => {
@@ -11,8 +12,6 @@ const IssueDetails: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [editForm, setEditForm] = useState({
     title: '',
@@ -25,7 +24,6 @@ const IssueDetails: React.FC = () => {
     const loadDetails = async () => {
       if (!id) return;
       setLoading(true);
-      setError(null);
       try {
         const data = await fetchIssueDetails(id);
         if (data && data.success && data.issue) {
@@ -37,10 +35,10 @@ const IssueDetails: React.FC = () => {
             status: data.issue.status || 'open',
           });
         } else {
-          setError(data?.message || 'Issue not found or unauthorized.');
+          toast.error(data?.message || 'Issue not found or unauthorized.');
         }
       } catch {
-        setError('Failed to fetch issue details.');
+        toast.error('Failed to fetch issue details.');
       } finally {
         setLoading(false);
       }
@@ -58,11 +56,9 @@ const IssueDetails: React.FC = () => {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-    setError(null);
-    setSuccess(null);
 
     if (!editForm.title.trim() || !editForm.description.trim()) {
-      setError('Title and Description cannot be empty.');
+      toast.error('Title and Description cannot be empty.');
       return;
     }
 
@@ -70,7 +66,7 @@ const IssueDetails: React.FC = () => {
     try {
       const data = await updateIssue(id, editForm);
       if (data.success) {
-        setSuccess('Issue updated successfully!');
+        toast.success('Issue updated successfully!');
         if (data.issue) {
           setIssue(data.issue);
         } else {
@@ -78,10 +74,10 @@ const IssueDetails: React.FC = () => {
         }
         setIsEditing(false);
       } else {
-        setError(data.message || 'Failed to update issue.');
+        toast.error(data.message || 'Failed to update issue.');
       }
     } catch {
-      setError('An error occurred while updating the issue.');
+      toast.error('An error occurred while updating the issue.');
     } finally {
       setSaving(false);
     }
@@ -92,9 +88,10 @@ const IssueDetails: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this issue?')) {
       const data = await deleteIssue(id);
       if (data.success) {
+        toast.success('Issue deleted successfully.');
         navigate('/');
       } else {
-        setError(data.message || 'Failed to delete issue.');
+        toast.error(data.message || 'Failed to delete issue.');
       }
     }
   };
@@ -136,9 +133,6 @@ const IssueDetails: React.FC = () => {
       </header>
 
       <main className="container" style={{ maxWidth: '800px' }}>
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
-
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: '#a3a3a3' }}>
             Loading issue details...

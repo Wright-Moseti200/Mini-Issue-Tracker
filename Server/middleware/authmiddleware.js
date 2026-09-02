@@ -3,9 +3,9 @@ require("dotenv").config();
 
 let auth = (req, res, next) => {
   try {
-    let token = req.cookies.token;
+    let token = req.cookies?.token;
     if (!token) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
         message: "No authentication"
       });

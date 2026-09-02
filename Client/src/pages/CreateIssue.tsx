@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useContextData } from '../context/ContextProvider';
 
 const CreateIssue: React.FC = () => {
@@ -13,7 +14,6 @@ const CreateIssue: React.FC = () => {
     status: 'open',
   });
 
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (
@@ -24,10 +24,9 @@ const CreateIssue: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!formData.title.trim() || !formData.description.trim()) {
-      setError('Both Title and Description are required.');
+      toast.error('Both Title and Description are required.');
       return;
     }
 
@@ -35,12 +34,13 @@ const CreateIssue: React.FC = () => {
     try {
       const data = await createIssue(formData);
       if (data.success) {
+        toast.success('Issue created successfully!');
         navigate('/');
       } else {
-        setError(data.message || 'Failed to create issue.');
+        toast.error(data.message || 'Failed to create issue.');
       }
     } catch {
-      setError('An error occurred while creating the issue.');
+      toast.error('An error occurred while creating the issue.');
     } finally {
       setLoading(false);
     }
@@ -65,8 +65,6 @@ const CreateIssue: React.FC = () => {
           <p style={{ color: '#a3a3a3', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Fill out the details below to log a new task or problem
           </p>
-
-          {error && <div className="alert alert-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">

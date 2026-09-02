@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useContextData } from '../context/ContextProvider';
 
 const Register: React.FC = () => {
@@ -12,8 +13,6 @@ const Register: React.FC = () => {
     password: '',
   });
 
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,11 +21,9 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all fields.');
+      toast.error('Please fill in all fields.');
       return;
     }
 
@@ -34,15 +31,15 @@ const Register: React.FC = () => {
     try {
       const data = await register(formData);
       if (data.success) {
-        setSuccess('Registration successful! Redirecting...');
+        toast.success('Registration successful!');
         setTimeout(() => {
           navigate('/');
         }, 1000);
       } else {
-        setError(data.message || 'Registration failed. Please try again.');
+        toast.error(data.message || 'Registration failed. Please try again.');
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -57,9 +54,6 @@ const Register: React.FC = () => {
         <p style={{ color: '#a3a3a3', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
           Join Mini Issue Tracker
         </p>
-
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
