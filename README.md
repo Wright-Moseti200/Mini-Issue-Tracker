@@ -216,6 +216,7 @@ Open a second terminal window:
 
 ```bash
 cd Client
+npm install -g vite
 npm install
 npm run dev
 ```
